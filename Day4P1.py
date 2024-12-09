@@ -5,8 +5,7 @@ import numpy as np
 #SAMX
 #MASA
 
-puzzle_input="""
-SAMMSMSXMMXXXXSSSMXMAXAMSSSSMSAXMXSSXXXSMMSMMXMASXSSSSSMSMMXMAXMSMMMASMSXSAMMXMMMSMXXSMMXSMXSXXXXMMMMXMASMMMSAMXXSSMMSMAMXMSSMXSSMMSAMSAMXMM
+puzzle_input="""SAMMSMSXMMXXXXSSSMXMAXAMSSSSMSAXMXSSXXXSMMSMMXMASXSSSSSMSMMXMAXMSMMMASMSXSAMMXMMMSMXXSMMXSMXSXXXXMMMMXMASMMMSAMXXSSMMSMAMXMSSMXSSMMSAMSAMXMM
 MASAAAMAMMAMSMMAAXMSSXMSAMAAXXMAMAMXMSMMMXSASXSMSMMAAAXMAMSAMXSMAASMXXASMSASMMSAMASXXMAMAMMAMXMMMMAASAMXAXASXSXSASAAAAXAXXMAAASXSXAMAXAMSASX
 SAMXSMSMMMAMMAMSMMXAMAXMAMMMMSSSMXSAAAAAMAMXMAAAMAMMMMMXSAMXASAXSXMMAMXMASAMAXSASASXXSAMSSMASAMAASMMSASMMMSMAAXXMSXMXSMMXXMASMMAMMMSMMMXSMAM
 MASAXAAASXMXXAMMAMXAMMXSAMASMXAAAASMMSSMMASAMSMMSSMAXXMXMAXXMAMMMSSXMSMSMMAMMMSAMXXMXMXMXAXAXASMXXMMSXMAAMAMMMMSXSMSAMAMMAXAXAXXMAXAXAAMXXMA
@@ -145,93 +144,67 @@ MXMXAXXMASMMMXMXMXXMAMXSSMSXSASXSAMASXMAMAMASMMMAAAMAMXMSAMXSMAMMAMASAMAMAMSMSAM
 SAMXMXMMXAAASMSSSXSMAMAMAMXMXAXXMAMAMAMXMSMAMASXMSSMMXSAMXMMMMXASASXSMMXSAMXAMAMAXAMXAMXMAMXMAMMMMMMAAAMAMASXMMASAMXMSMSSMXMMSAMXMMAXAAMMSXM
 MXXAMMXMXMSMSAAAAAAMAMMSSMAMMMMSSMMSSMMSMAMMSAMMMAMASASXMAMAAXMMSASMMMAASASMSMSMXSAMSSMASXMASAMMASAMSSSMASMMMSMMMMSMMMAMAMMSASASMMSMMMSXMMAM
 SSSXSAASMXMXMMMSMMMSXSAAASASXAAAAAAAAMAASASMMAXAMASAMASASASMMSAXMXMAAMMMSAMXXAMAAMAMAASXSAAAMSMSASXXXAXXXMASAAAXMASAXSASAMAMMSXMXAAAAXMAASMM
-XMASAMMSAXMASAMXMXXAAMMSMSSSXMSSSMMSSMSXSXSXSMMXSASMMXMMSMSXMAMXMASMMSSXMAMXMMMMMSAMSMMXSMMMSXXMASMXMXMASMMMSSSMMMSSMSAMXMXSMMMXMSSSMSSSMAMM
-"""
+XMASAMMSAXMASAMXMXXAAMMSMSSSXMSSSMMSSMSXSXSXSMMXSASMMXMMSMSXMAMXMASMMSSXMAMXMMMMMSAMSMMXSMMMSXXMASMXMXMASMMMSSSMMMSSMSAMXMXSMMMXMSSSMSSSMAMM"""
 
 #140 characters per line
+#141 lines
 #19739
-#multiples of 141 are the numbers beginning the new lines
-#Approaches: 1) Make it a numpy array 
-input = puzzle_input.strip()
 
-# Initialize a 4x4 array with empty strings
-array_4x4 = np.full((4, 4), "", dtype=str)
+# Split the string into rows (giant list seperated by commas for each row)
+import numpy as np
+
+# Split the string into rows
+rows = puzzle_input.split('\n')
+
+# Make each row a list
+char_lists = [list(row) for row in rows]
+
+# Convert to a 2D NumPy array
+array = np.array(char_lists)
 
 def is_it_horizontal(array,row,col):
-    horizontal_elements = ''.join(array[row,:])
+    horizontal_elements = ''.join(array[row,col:col+4])
     if horizontal_elements == 'XMAS' or horizontal_elements[::-1] == 'XMAS':
         return True
     return False
 
 def is_it_vertical(array,row,col):
-    vertical_elements = ''.join(array[:, col] )
+    vertical_elements = ''.join(array[row:row+4, col])
     if vertical_elements == 'XMAS' or vertical_elements[::-1] == 'XMAS':
         return True
     return False
 
-
-def is_it_diagonal_TLBR(array,row,col):
-    try:
-        diagonal_elements = ''.join([array[row+i, col+i] for i in range(4)])
-        if diagonal_elements == 'XMAS' or diagonal_elements[::-1] == 'XMAS':
-            return True
-    except IndexError:
-        pass
-    return False
+def is_it_diagonal_TLBR(array, row, col):
+    # Ensure we don't exceed array bounds
+    if row + 4 > array.shape[0] or col + 4 > array.shape[1]:
+        return False
+    diagonal_elements = ''.join([array[row+i, col+i] for i in range(4)])
+    return diagonal_elements == 'XMAS' or diagonal_elements[::-1] == 'XMAS'
     
-def is_it_diagonal_TRBL(array,row,col):
-    try:
-        diagonal_elements = ''.join([array[row+i, col-i] for i in range(4)])
-        if diagonal_elements == 'XMAS' or diagonal_elements[::-1] == 'XMAS':
-            return True
-    except IndexError:
-        pass
-    return False
+def is_it_diagonal_TRBL(array, row, col):
+    # Ensure we don't exceed array bounds
+    if row + 4 > array.shape[0] or col - 3 < 0:
+        return False
+    diagonal_elements = ''.join([array[row+i, col-i] for i in range(4)])
+    return diagonal_elements == 'XMAS' or diagonal_elements[::-1] == 'XMAS'
 
-count=0
+# Create a set to track unique finds
+unique_finds = set()
 
-#n starts at the first character
-for n in range(len(input)): #Once it gets to the 3rd from bottom line it exits due to index error, cannot be diagnol or vertical only across or backwards 
-    try:
-        array_4x4[0, 0] = input[n]   #Assign to the first row, first column
-        array_4x4[0, 1] = input[n+1] #Assign to the first row, second column
-        array_4x4[0, 2] = input[n+2] #Assign to the first row, third column
-        array_4x4[0, 3] = input[n+3] #Assign to the first row, fourth column
 
-        array_4x4[1,0] = input[n+141]
-        array_4x4[1,1] = input[n+142]
-        array_4x4[1,2] = input[n+143]
-        array_4x4[1,3] = input[n+144]
+for row in range(array.shape[0]):
+    for col in range(array.shape[1]):
+        # Check all directions from every starting point
+        if is_it_horizontal(array, row, col):
+            unique_finds.add(f'H{row},{col}')
+        if is_it_vertical(array, row, col):
+            unique_finds.add(f'V{row},{col}')
+        if is_it_diagonal_TRBL(array, row, col):
+            unique_finds.add(f'TRBL{row},{col}')
+        if is_it_diagonal_TLBR(array, row, col):
+            unique_finds.add(f'TLBR{row},{col}')
 
-        array_4x4[2,0] = input[n+282]
-        array_4x4[2,1] = input[n+283]
-        array_4x4[2,2] = input[n+284]
-        array_4x4[2,3] = input[n+285]
+count=len(unique_finds)
+print("Count:", count)
 
-        array_4x4[3,0] = input[n+423]
-        array_4x4[3,1] = input[n+424]
-        array_4x4[3,2] = input[n+425]
-        array_4x4[3,3] = input[n+426]
-
-        for row in range(array_4x4.shape[0]):
-            for col in range(array_4x4.shape[1]):
-                if array_4x4[row,col] == 'X':
-                    if is_it_horizontal(array_4x4,row,col):
-                        count+=1
-                    if is_it_vertical(array_4x4,row,col):
-                        count+=1
-                    if is_it_diagonal_TRBL(array_4x4,row,col):
-                        count+=1
-                    if is_it_diagonal_TLBR(array_4x4,row,col):
-                        count+=1
-
-    except IndexError:
-        continue        
-    #     # Continue processing the string horizontally from the last valid position
-    #     for remaining_n in range(19180, len(input)-3):  # n + 3 to avoid going out of bounds
-    #         horizontal = ''.join(input[remaining_n:remaining_n + 4])  # Get 4 characters
-    #         if horizontal == 'XMAS' or horizontal[::-1] == 'XMAS':  # Check both directions
-    #             count += 1
-            
-
-print("Count is:", count)
+#2547
