@@ -873,21 +873,26 @@ for equation in puzzle_input:
     test_values_int = list(map(int, test_values))
     hashmap[target_number] = test_values_int
 
+
+
+
 def evaluate_left_to_right(values,operations):
     result=values[0]
-    print(values)
 
     for i in range(len(operations)):
         if operations[i] == '*':
             result*=values[i+1]
         if operations[i] == '+':
             result+=values[i+1]
+        if operations[i] == '||':
+            result=int(str(result) + str(values[i+1]))
+            
     return result
 
 
 def check_if_correct(target, values):
     # Generate all possible combinations of "+" and "*"
-    operators = list(product(["+", "*"], repeat=len(values) - 1))
+    operators = list(product(["+", "*","||"], repeat=len(values) - 1))
     for ops in operators:
         result = evaluate_left_to_right(values, ops)
         if result == target:
@@ -903,4 +908,5 @@ for key,values in hashmap.items():
 
 
 print(sum(correct_numbers))
-#267566105056
+
+#116094961956019
